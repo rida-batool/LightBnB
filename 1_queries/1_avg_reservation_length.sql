@@ -1,0 +1,1 @@
+select avg(end_date-start_date) AS average_duration from reservations;
