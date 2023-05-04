@@ -67,7 +67,7 @@ const addUser = function(user) {
   return pool
     .query(`INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING *;`, [user.name, user.password, user.email])
     .then(response => {
-      return response.rows;
+      return response.rows[0];
     })
     .catch((err) => {
       console.log(err.message);
@@ -114,14 +114,7 @@ const getAllReservations = function(guest_id, limit = 10) {
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
-/** SELECT properties.id, title, cost_per_night, avg(property_reviews.rating) as average_rating
-FROM properties
-LEFT JOIN property_reviews ON properties.id = property_id
-WHERE city LIKE '%ancouv%'
-GROUP BY properties.id
-HAVING avg(property_reviews.rating) >= 4
-ORDER BY cost_per_night
-LIMIT 10; */
+
 
 const getAllProperties = function(options, limit) {
   // 1
@@ -185,11 +178,24 @@ const getAllProperties = function(options, limit) {
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+  return pool
+    .query(`INSERT INTO properties (owner_id, title,description,thumbnail_photo_url,cover_photo_url,
+                                  cost_per_night, street, city, province, post_code, country, 
+                                  parking_spaces, number_of_bathrooms, number_of_bedrooms) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *;`,
+      [property.owner_id, property.title, property.description, property.thumbnail_photo_url, property.cover_photo_url,
+      property.cost_per_night, property.street, property.city, property.province, property.post_code, property.country,
+      property.parking_spaces, property.number_of_bathrooms, property.number_of_bedrooms])
+    .then(response => {
+      //console.log(response.rows);
+      return response.rows[0];
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 };
+
+
 
 module.exports = {
   getUserWithEmail,
